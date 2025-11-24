@@ -1,5 +1,6 @@
 package ec.edu.uisek.githubclient
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -21,6 +22,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         setupRecycleView()
         fetchRepositories()
+        setupFabButton()
     }
 
     private fun setupRecycleView(){
@@ -63,5 +65,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun showMessage(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun setupFabButton(){
+        binding.btAdd.setOnClickListener{
+            val intent = Intent(this, AddRepoActivity::class.java)
+            startActivity(intent)
+        }
     }
 }
