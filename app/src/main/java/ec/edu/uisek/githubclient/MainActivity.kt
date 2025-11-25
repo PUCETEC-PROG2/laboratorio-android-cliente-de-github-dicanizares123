@@ -20,9 +20,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        setupFabButton()
+    }
+
+    override fun onResume(){
+        super.onResume()
         setupRecycleView()
         fetchRepositories()
-        setupFabButton()
     }
 
     private fun setupRecycleView(){
