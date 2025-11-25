@@ -20,18 +20,20 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        setupRecycleView()
         setupFabButton()
     }
 
     override fun onResume(){
         super.onResume()
-        setupRecycleView()
         fetchRepositories()
     }
 
     private fun setupRecycleView(){
-        reposAdapter = ReposAdapter()
+        reposAdapter = ReposAdapter(
+            onEditClick = { repo -> openEditRepo(repo) },
+            onDeleteClick = { repo -> deleteRepo(repo) }
+        )
         binding.repoRecyclerView.adapter = reposAdapter
     }
 
@@ -77,5 +79,42 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, AddRepoActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    private fun openEditRepo(repo: Repo) {
+        val intent = Intent(this, AddRepoActivity::class.java)
+        intent.putExtra("REPO_NAME", repo.name)
+        intent.putExtra("REPO_DESCRIPTION", repo.description)
+        intent.putExtra("REPO_OWNER", repo.owner.Login)
+        intent.putExtra("IS_EDIT_MODE", true)
+        startActivity(intent)
+    }
+
+    private fun deleteRepo(repo: Repo) {
+        val apiService = RetrofitClient.gitHubApiService
+        val call = apiService.deleteRepository(repo.owner.Login, repo.name)
+
+        call.enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if (response.isSuccessful) {
+                    showMessage("Repositorio ${repo.name} eliminado exitosamente")
+                    fetchRepositories()
+                } else {
+                    val errorMsg = when (response.code()) {
+                        401 -> "No autorizado"
+                        403 -> "Prohibido"
+                        404 -> "No encontrado"
+                        else -> "Error al eliminar: ${response.code()}"
+                    }
+                    Log.e("MainActivity", errorMsg)
+                    showMessage(errorMsg)
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                showMessage("Fallo en la red al eliminar")
+                Log.e("MainActivity", "Fallo en la red ${t.message}")
+            }
+        })
     }
 }
